@@ -79,14 +79,24 @@ function doPost(e) {
 
 function sendWeeklyReport(chatId) {
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAME);
-  var intro = "Здравия желаю, товарищи студенты! Завтра пятница, день военной подготовки. Не забудьте побриться!\n\n";
-  var dutyStudent = sheet.getRange("B15").getValue();
-  var paradeStudent = sheet.getRange("B16").getValue();
+  var intro = "Здравия желаю, товарищи студенты! Завтра пятница, день военной подготовки. Не забудьте: \n\n";
   
-  var msg = intro + "Дежурный: студент " + dutyStudent + "\n" +
-            "Нарядный: студент " + paradeStudent;
-            
-  sendMessage(CHAT_ID, msg);
+  var lastRow = sheet.getLastRow();
+  var listItems = [];
+  
+  if (lastRow >= 19) {
+    var values = sheet.getRange(19, 1, lastRow - 18, 1).getValues();
+    for (var i = 0; i < values.length; i++) {
+      var val = String(values[i][0]).trim();
+      if (val !== "") {
+        listItems.push("- " + val);
+      }
+    }
+  }
+  
+  var msg = intro + (listItems.length > 0 ? listItems.join("\n") : "Список пуст");
+  
+  sendMessage(chatId, msg);
 }
 
 function rateStudent(chatId, surname, action) {
