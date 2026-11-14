@@ -1,0 +1,3 @@
+var TOKEN = "YOUR_BOT_TOKEN_HERE";
+var CHAT_ID = "YOUR_CHAT_ID_HERE";
+var SHEET_NAME = "Лист1";
