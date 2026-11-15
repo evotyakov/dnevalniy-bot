@@ -34,6 +34,7 @@ function doPost(e) {
         "**Доступные приказы:**\n" + 
         "- Мбапенко, доложи обстановку\n" +
         "- Мбапенко, вызови рандомного студента\n" +
+        "- Мбапенко, напомни (что-то сделать)\n" +
         "- Студент (фамилия) респект\n" + 
         "- Студент (фамилия) косяк\n\n" +
         "Каждый четверг буду назначать дежурного и нарядного. Доклад окончил";
@@ -55,6 +56,17 @@ function doPost(e) {
       // Команда вызова случайного студента
       if (lowerText.indexOf("мбапенко, вызови рандомного студента") !== -1) {
         sendRandomStudent(chatId);
+        return;
+      }
+
+      // Команда добавления напоминания
+      if (lowerText.startsWith("мбапенко, напомни")) {
+        var reminderText = text.substring("мбапенко, напомни ".length).trim();
+        if (reminderText !== "") {
+          addReminder(chatId, reminderText);
+        } else {
+          sendMessage(chatId, "Не могу знать, что именно нужно напомнить");
+        }
         return;
       }
 
@@ -97,6 +109,20 @@ function sendWeeklyReport(chatId) {
   var msg = intro + (listItems.length > 0 ? listItems.join("\n") : "Список пуст");
   
   sendMessage(chatId, msg);
+}
+
+// Функция добавления напоминания в таблицу, начиная с ячейки A19 и вниз
+function addReminder(chatId, reminderText) {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAME);
+  
+  var row = 19;
+  while (sheet.getRange(row, 1).getValue() !== "") {
+    row++;
+  }
+  
+  sheet.getRange(row, 1).setValue(reminderText);
+
+  sendMessage(chatId, "Есть! В четверг вечером напомню " + reminderText);
 }
 
 function rateStudent(chatId, surname, action) {
