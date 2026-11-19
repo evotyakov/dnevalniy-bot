@@ -37,6 +37,8 @@ function doPost(e) {
         "- Мбапенко, напомни (что-то сделать)\n" +
         "- Студент (фамилия) респект\n" + 
         "- Студент (фамилия) косяк\n\n" +
+        "- Мбапенко, напомни ... \n" +
+        "- Мбапенко, забудь про ...\n\n" +
         "Каждый четверг буду назначать дежурного и нарядного. Доклад окончил";
       sendMessage(chatId, welcomeText);
       return;
@@ -66,6 +68,17 @@ function doPost(e) {
           addReminder(chatId, reminderText);
         } else {
           sendMessage(chatId, "Не могу знать, что именно нужно напомнить");
+        }
+        return;
+      }
+
+      if (lowerText.startsWith("мбапенко, забудь про")){
+        var reminderText = text.substring("мбапенко, забудь про ".length).trim();
+        if (reminderText !== ""){
+          removeReminder(chatId, reminderText);
+        }
+        else {
+          sendMessage(chatId, "Не могу знать что забыть");
         }
         return;
       }
@@ -124,6 +137,23 @@ function addReminder(chatId, reminderText) {
 
   sendMessage(chatId, "Есть! В четверг вечером напомню " + reminderText);
 }
+
+function removeReminder(chatId, reminderText) {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAME);
+  var lastRow = sheet.getLastRow();
+  var needle = reminderText.toLowerCase();
+
+  for (var row = 19; row <= lastRow; row++) {
+    var val = String(sheet.getRange(row, 1).getValue()).trim();
+    if (val !== "" && val.toLowerCase().indexOf(needle) !== -1) {
+      sheet.getRange(row, 1).setValue("");
+      sendMessage(chatId, "Есть! Отменил напоминание: " + val);
+      return;
+    }
+  }
+  sendMessage(chatId, "Не могу знать такого напоминания");
+}
+
 
 function rateStudent(chatId, surname, action) {
   var targetCol = (action === "косяк") ? 5 : 6; // Столбец E (5) или F (6)
