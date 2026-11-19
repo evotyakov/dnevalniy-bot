@@ -105,8 +105,19 @@ function sendWeeklyReport(chatId) {
       }
     }
   }
+
+  var result = appointStudent()
+  if (result.success) {
+    var dutyStudent = result.duty;
+    var paradeStudent = result.parade;
+    var appointment = "Дежурный: студент " + dutyStudent + "\n" +
+              "Нарядный: студент " + paradeStudent;
+  }
+  else {
+    var appointment = "При назначении студентов произошла ошибка";
+  }
   
-  var msg = intro + (listItems.length > 0 ? listItems.join("\n") : "Список пуст");
+  var msg = intro + (listItems.length > 0 ? listItems.join("\n") : "Список пуст") + "\n\n" + appointment;
   
   sendMessage(chatId, msg);
 }
@@ -198,23 +209,37 @@ function addPointBySurname(surname, colIndex) {
   return { success: false };
 }
 
-function sendCurrentStatus(chatId) {
+function appointStudent() {
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAME);
   
   var dutyStudent = sheet.getRange("B15").getValue();
   var paradeStudent = sheet.getRange("B16").getValue();
   
-  var msg = "Есть. **Актуальное назначение:**\n\n" +
-            "Дежурный: студент " + dutyStudent + "\n" +
-            "Нарядный: студент " + paradeStudent;
-            
-  sendMessage(chatId, msg);
+  return {
+    success: true,
+    duty: dutyStudent,
+    parade: paradeStudent
+  };
+}
+
+function sendCurrentStatus(chatId) {
+  var result = appointStudent()
+    if (result.success) {
+    var dutyStudent = result.duty;
+    var paradeStudent = result.parade;
+    var msg = "Есть. **Актуальное назначение:**\n\n" +
+              "Дежурный: студент " + dutyStudent + "\n" +
+              "Нарядный: студент " + paradeStudent;
+              
+    sendMessage(chatId, msg);
+  }
 }
 
 function sendMessage(chatId, text) {
+  var targetChatId = chatId || CHAT_ID;
   var url = "https://api.telegram.org/bot" + TOKEN + "/sendMessage";
   var payload = {
-    "chat_id": chatId,
+    "chat_id": targetChatId,
     "text": text,
     "parse_mode": "Markdown"
   };
