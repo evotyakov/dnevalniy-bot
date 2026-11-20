@@ -35,6 +35,8 @@ function doPost(e) {
         "- Мбапенко, доложи обстановку\n" +
         "- Мбапенко, вызови рандомного студента\n" +
         "- Мбапенко, напомни (что-то сделать)\n" +
+        "- Мбапенко, забудь (что-то сделать)\n" +
+        "- (ссылка на напоминание) Мбапенко, забудь\n" +
         "- Студент (фамилия) респект\n" + 
         "- Студент (фамилия) косяк\n\n" +
         "Каждый четверг буду назначать дежурного и нарядного. Доклад окончил";
@@ -68,6 +70,23 @@ function doPost(e) {
           sendMessage(chatId, "Не могу знать, что именно нужно напомнить");
         }
         return;
+      }
+
+      // Команда удаления напоминания через ответ на сообщение ("мбапенко, забудь")
+      if (lowerText === "мбапенко, забудь") {
+        if (contents.message && contents.message.reply_to_message && contents.message.reply_to_message.text) {
+          var replyText = contents.message.reply_to_message.text.trim();
+          removeReminderByLink(chatId, replyText);
+        } else {
+          sendMessage(chatId, "Не могу знать, что надо забыть. Ответьте на сообщение с напоминанием");
+        }
+        return;
+      }
+
+      removeReminderByLink(chatId, replyText)
+
+      if (lowerText === "мбапенко") {
+        sendMessage(chatId, "Я");
       }
 
       // Обработка команд типа "студент <Фамилия> косяк" или "студент <Фамилия> респект"
@@ -134,6 +153,48 @@ function addReminder(chatId, reminderText) {
   sheet.getRange(row, 1).setValue(reminderText);
 
   sendMessage(chatId, "Есть! В четверг вечером напомню " + reminderText);
+}
+
+// Функция удаления напоминания по тексту из ответа на сообщение
+function removeReminderByLink(chatId, replyText) {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAME);
+  
+  // Извлекаем чистый текст напоминания из сообщения (поддерживаем оба варианта: от бота и от пользователя)
+  var reminderText = "";
+  var lowerReply = replyText.toLowerCase();
+  
+  if (lowerReply.indexOf("мбапенко, напомни") === 0) {
+    reminderText = replyText.substring("мбапенко, напомни".length).trim();
+  } else if (lowerReply.indexOf("есть! в четверг вечером напомню") === 0) {
+    reminderText = replyText.substring("Есть! В четверг вечером напомню".length).trim();
+  } else {
+    reminderText = replyText;
+  }
+  
+  var lastRow = sheet.getLastRow();
+  var found = false;
+  
+  if (lastRow >= 19) {
+    var range = sheet.getRange(19, 1, lastRow - 18, 1);
+    var values = range.getValues();
+    
+    // Ищем точное совпадение текста в столбце A (начиная с 19 строки)
+    for (var i = 0; i < values.length; i++) {
+      var cellVal = String(values[i][0]).trim();
+      if (cellVal.toLowerCase() === reminderText.toLowerCase()) {
+        var targetRow = 19 + i;
+        sheet.deleteRow(targetRow); // Удаляем строку, сдвигая остальные вверх
+        found = true;
+        break;
+      }
+    }
+  }
+  
+  if (found) {
+    sendMessage(chatId, "Есть! Не буду напоминать " + reminderText);
+  } else {
+    sendMessage(chatId, "Не удалось найти соответствующее напоминание в таблице");
+  }
 }
 
 function rateStudent(chatId, surname, action) {
