@@ -49,6 +49,11 @@ function doPost(e) {
       var text = contents.message.text.trim();
       var lowerText = text.toLowerCase();
 
+      if (lowerText === "мбапенко") {
+        sendMessage(chatId, "Я");
+        return;
+      }
+      
       // Команда получения актуального распределения
       if (lowerText === "/status" || lowerText.indexOf("мбапенко, доложи обстановку") !== -1) {
         sendCurrentStatus(chatId);
@@ -81,12 +86,6 @@ function doPost(e) {
           sendMessage(chatId, "Не могу знать, что надо забыть. Ответьте на сообщение с напоминанием");
         }
         return;
-      }
-
-      removeReminderByLink(chatId, replyText)
-
-      if (lowerText === "мбапенко") {
-        sendMessage(chatId, "Я");
       }
 
       // Обработка команд типа "студент <Фамилия> косяк" или "студент <Фамилия> респект"
