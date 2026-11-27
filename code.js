@@ -108,6 +108,8 @@ function doPost(e) {
 }
 
 function sendWeeklyReport(chatId) {
+  chatId = chatId || CHAT_ID;
+
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAME);
   var intro = "Здравия желаю, товарищи студенты! Завтра пятница, день военной подготовки. Не забудьте: \n\n";
   
@@ -205,7 +207,7 @@ function rateStudent(chatId, surname, action) {
     var verb = (action === "косяк") ? "Вы допустили" : "Вам объявляется";
     sendMessage(chatId, "Студент **" + result.only_surname + "! " + verb + " " + action + ". " + emoji + "\nВаш рейтинг: " + result.newValue + ".");
   } else {
-    sendMessage(chatId, "Студент с фамилией **" + surname + "** не найден в таблице.");
+    sendMessage(chatId, "Студент с фамилией **" + surname + "** не найден в таблице");
   }
 }
 
